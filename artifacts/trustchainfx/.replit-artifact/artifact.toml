@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "TrustChainFX"
+version = "1.0.0"
+id = "artifacts/trustchainfx"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23000
+
+[services.development]
+run = "pnpm --filter @workspace/trustchainfx run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/trustchainfx", "run", "build" ]
+publicDir = "artifacts/trustchainfx/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23000"
+BASE_PATH = "/"
