@@ -5,6 +5,7 @@ import { useLanguage } from "@/hooks/use-language";
 import { LANGUAGES } from "@/lib/translations";
 import { Shield, Globe, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ChatWidget } from "@/components/chat-widget";
 
 export function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
@@ -112,6 +113,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <main className="flex-1 flex flex-col">
         {children}
       </main>
+      <ChatWidget />
 
       <footer className="border-t border-border/40 bg-card/30">
         <div className="container mx-auto px-4 md:px-8 py-10">
