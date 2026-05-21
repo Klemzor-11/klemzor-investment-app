@@ -65,6 +65,19 @@ export function Layout({ children }: { children: ReactNode }) {
       <main className="flex-1 flex flex-col">
         {children}
       </main>
+      <footer className="border-t border-border/40 bg-background/80 py-6">
+        <div className="container mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-2 text-sm text-muted-foreground">
+          <span className="font-semibold tracking-wide uppercase text-foreground/60">
+            TrustChain<span className="text-primary">FX</span>
+          </span>
+          <span>
+            Developed by{" "}
+            <span className="text-primary font-medium">Andrea Donato</span>
+            {" "}— Germany
+          </span>
+          <span>&copy; {new Date().getFullYear()} TrustChainFX. All rights reserved.</span>
+        </div>
+      </footer>
     </div>
   );
 }
