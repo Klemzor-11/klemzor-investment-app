@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/hooks/use-language";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { motion } from "framer-motion";
 export default function Login() {
   const [, setLocation] = useLocation();
   const { login } = useAuth();
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -26,8 +28,8 @@ export default function Login() {
     <Layout>
       <div className="flex-1 flex items-center justify-center py-12 px-4 relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
-        
-        <motion.div 
+
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
@@ -39,40 +41,48 @@ export default function Login() {
                 <Shield className="w-8 h-8" />
               </div>
             </div>
-            
-            <h2 className="text-2xl font-bold text-center mb-2 tracking-tight">Access Terminal</h2>
-            <p className="text-muted-foreground text-center mb-8 text-sm font-mono">Authenticate to access institutional yields</p>
-            
+
+            <h2 className="text-2xl font-bold text-center mb-2 tracking-tight">{t.login.title}</h2>
+            <p className="text-muted-foreground text-center mb-8 text-sm font-mono">{t.login.subtitle}</p>
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-xs uppercase tracking-widest text-muted-foreground">Corporate Email</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="investor@domain.com"
+                <Label htmlFor="email" className="text-xs uppercase tracking-widest text-muted-foreground">
+                  {t.login.emailLabel}
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder={t.login.emailPlaceholder}
                   className="bg-background border-border focus:border-primary/50 font-mono"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  data-testid="input-email"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-xs uppercase tracking-widest text-muted-foreground">Access Key</Label>
-                </div>
-                <Input 
-                  id="password" 
+                <Label htmlFor="password" className="text-xs uppercase tracking-widest text-muted-foreground">
+                  {t.login.passwordLabel}
+                </Label>
+                <Input
+                  id="password"
                   type="password"
                   placeholder="••••••••"
                   className="bg-background border-border focus:border-primary/50 font-mono tracking-widest"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  data-testid="input-password"
                   required
                 />
               </div>
-              
-              <Button type="submit" className="w-full h-12 text-md font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all">
-                Initialize Connection
+
+              <Button
+                type="submit"
+                data-testid="button-submit-login"
+                className="w-full h-12 text-md font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all"
+              >
+                {t.login.submitBtn}
               </Button>
             </form>
           </div>
