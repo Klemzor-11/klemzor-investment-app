@@ -100,11 +100,18 @@ export function Layout({ children }: { children: ReactNode }) {
                 </Button>
               </>
             ) : (
-              <Link href="/login">
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold tracking-wide">
-                  {t.nav.login}
-                </Button>
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link href="/login">
+                  <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
+                    {t.nav.login}
+                  </Button>
+                </Link>
+                <Link href="/signup">
+                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold tracking-wide">
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
             )}
           </div>
         </div>

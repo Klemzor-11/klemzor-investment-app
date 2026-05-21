@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
 import { Layout } from "@/components/layout";
@@ -51,14 +51,11 @@ export default function Login() {
                   {t.login.emailLabel}
                 </Label>
                 <Input
-                  id="email"
-                  type="email"
+                  id="email" type="email"
                   placeholder={t.login.emailPlaceholder}
                   className="bg-background border-border focus:border-primary/50 font-mono"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  data-testid="input-email"
-                  required
+                  value={email} onChange={(e) => setEmail(e.target.value)}
+                  data-testid="input-email" required
                 />
               </div>
               <div className="space-y-2">
@@ -66,14 +63,10 @@ export default function Login() {
                   {t.login.passwordLabel}
                 </Label>
                 <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
+                  id="password" type="password" placeholder="••••••••"
                   className="bg-background border-border focus:border-primary/50 font-mono tracking-widest"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  data-testid="input-password"
-                  required
+                  value={password} onChange={(e) => setPassword(e.target.value)}
+                  data-testid="input-password" required
                 />
               </div>
 
@@ -85,6 +78,11 @@ export default function Login() {
                 {t.login.submitBtn}
               </Button>
             </form>
+
+            <p className="text-center text-sm text-muted-foreground mt-6">
+              Don&apos;t have an account?{" "}
+              <Link href="/signup" className="text-primary hover:underline font-medium">Create one free</Link>
+            </p>
           </div>
         </motion.div>
       </div>
