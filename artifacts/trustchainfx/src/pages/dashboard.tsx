@@ -1,12 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useBalance } from "@/hooks/use-balance";
 import { useLanguage } from "@/hooks/use-language";
 import { Layout } from "@/components/layout";
+import { DepositModal } from "@/components/deposit-modal";
+import { WithdrawModal } from "@/components/withdraw-modal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { ArrowUpRight, Wallet, Activity, Briefcase, Calculator, PackagePlus, ChevronDown } from "lucide-react";
+import { ArrowUpRight, Wallet, Activity, Briefcase, Calculator, PackagePlus, ChevronDown, ArrowDownLeft, ArrowUpRight as WithdrawIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const chartData = [
@@ -18,45 +21,60 @@ const chartData = [
   { month: "Jun", value: 19850 },
 ];
 
-const ALL_TRANSACTIONS = [
-  { id: "TX-9021", type: "Yield Distribution", amount: "+$450.00", date: "Today, 09:41 AM", status: "Completed" },
-  { id: "TX-8914", type: "Package Upgrade (Growth)", amount: "-$2,000.00", date: "Yesterday, 14:22 PM", status: "Completed" },
-  { id: "TX-8802", type: "Initial Deposit", amount: "+$12,500.00", date: "Jan 12, 10:00 AM", status: "Completed" },
-  { id: "TX-8701", type: "Yield Distribution", amount: "+$380.00", date: "Jan 8, 09:00 AM", status: "Completed" },
-  { id: "TX-8654", type: "Yield Distribution", amount: "+$320.00", date: "Dec 28, 09:05 AM", status: "Completed" },
-  { id: "TX-8512", type: "Starter Package", amount: "-$500.00", date: "Dec 15, 11:30 AM", status: "Completed" },
-];
-
 export default function Dashboard() {
   const { user } = useAuth();
+  const { balance, transactions, deposit, withdraw } = useBalance();
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const [showAllTx, setShowAllTx] = useState(false);
+  const [depositOpen, setDepositOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
 
-  useEffect(() => {
-    if (!user) {
-      setLocation("/login");
-    }
-  }, [user, setLocation]);
-
-  if (!user) return null;
+  if (!user) {
+    setLocation("/login");
+    return null;
+  }
 
   const displayName = user.name || user.email;
-  const visibleTransactions = showAllTx ? ALL_TRANSACTIONS : ALL_TRANSACTIONS.slice(0, 3);
+  const visibleTransactions = showAllTx ? transactions : transactions.slice(0, 3);
+  const invested = 12500;
+  const gain = balance - invested;
+  const gainPct = ((gain / invested) * 100).toFixed(1);
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 md:px-8 py-8 max-w-7xl">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4"
-        >
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="container mx-auto px-4 md:px-8 py-8 max-w-7xl"
+      >
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t.dashboard.title}</h1>
-            <p className="text-muted-foreground mt-1">{t.dashboard.subtitle}, <span className="text-foreground font-medium">{displayName}</span></p>
+            <p className="text-muted-foreground mt-1">
+              {t.dashboard.subtitle}, <span className="text-foreground font-medium">{displayName}</span>
+            </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+              onClick={() => setDepositOpen(true)}
+              data-testid="button-deposit"
+            >
+              <ArrowDownLeft className="w-4 h-4 mr-2" />
+              Deposit
+            </Button>
+            <Button
+              variant="outline"
+              className="border-border hover:bg-secondary"
+              onClick={() => setWithdrawOpen(true)}
+              data-testid="button-withdraw"
+            >
+              <WithdrawIcon className="w-4 h-4 mr-2" />
+              Withdraw
+            </Button>
             <Link href="/packages">
               <Button variant="outline" className="border-primary/20 hover:bg-primary/10 hover:text-primary" data-testid="button-new-investment">
                 <PackagePlus className="w-4 h-4 mr-2" />
@@ -70,8 +88,9 @@ export default function Dashboard() {
               </Button>
             </Link>
           </div>
-        </motion.div>
+        </div>
 
+        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card className="bg-card/50 border-border/50 backdrop-blur">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -79,9 +98,12 @@ export default function Dashboard() {
               <Wallet className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-foreground font-mono" data-testid="text-total-value">$19,850.00</div>
-              <p className="text-xs text-emerald-500 mt-1 flex items-center font-medium">
-                <ArrowUpRight className="h-3 w-3 mr-1" /> +$7,350.00 (58.8%)
+              <div className="text-3xl font-bold text-foreground font-mono" data-testid="text-total-value">
+                ${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <p className={`text-xs mt-1 flex items-center font-medium ${gain >= 0 ? "text-emerald-500" : "text-red-400"}`}>
+                <ArrowUpRight className="h-3 w-3 mr-1" />
+                {gain >= 0 ? "+" : ""}${gain.toFixed(2)} ({gainPct}%)
               </p>
             </CardContent>
           </Card>
@@ -117,6 +139,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {/* Charts + Ledger */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <Card className="lg:col-span-2 bg-card/30 border-border/50">
             <CardHeader>
@@ -160,33 +183,49 @@ export default function Dashboard() {
                       transition={{ duration: 0.2 }}
                       className="flex items-center justify-between border-b border-border/40 pb-4 last:border-0 last:pb-0"
                     >
-                      <div>
-                        <p className="font-medium text-sm">{tx.type}</p>
+                      <div className="min-w-0 flex-1 mr-3">
+                        <p className="font-medium text-sm truncate">{tx.type}</p>
                         <p className="text-xs text-muted-foreground font-mono mt-0.5">{tx.id} · {tx.date}</p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right shrink-0">
                         <p className={`font-mono text-sm font-medium ${tx.amount.startsWith("+") ? "text-emerald-500" : "text-foreground"}`}>
                           {tx.amount}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{tx.status}</p>
+                        <p className={`text-xs mt-0.5 ${tx.status === "Pending" ? "text-yellow-500" : "text-muted-foreground"}`}>
+                          {tx.status}
+                        </p>
                       </div>
                     </motion.div>
                   ))}
                 </AnimatePresence>
               </div>
-              <Button
-                variant="ghost"
-                className="w-full mt-5 text-sm text-primary hover:text-primary/80 hover:bg-primary/5"
-                onClick={() => setShowAllTx((v) => !v)}
-                data-testid="button-view-ledger"
-              >
-                {showAllTx ? "Show Less" : t.dashboard.viewLedger}
-                <ChevronDown className={`ml-1 h-3 w-3 transition-transform ${showAllTx ? "rotate-180" : ""}`} />
-              </Button>
+              {transactions.length > 3 && (
+                <Button
+                  variant="ghost"
+                  className="w-full mt-5 text-sm text-primary hover:text-primary/80 hover:bg-primary/5"
+                  onClick={() => setShowAllTx((v) => !v)}
+                  data-testid="button-view-ledger"
+                >
+                  {showAllTx ? "Show Less" : t.dashboard.viewLedger}
+                  <ChevronDown className={`ml-1 h-3 w-3 transition-transform ${showAllTx ? "rotate-180" : ""}`} />
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>
-      </div>
+      </motion.div>
+
+      <DepositModal
+        open={depositOpen}
+        onClose={() => setDepositOpen(false)}
+        onDeposit={(amount) => deposit(amount)}
+      />
+      <WithdrawModal
+        open={withdrawOpen}
+        onClose={() => setWithdrawOpen(false)}
+        onWithdraw={(amount, address) => withdraw(amount, address)}
+        balance={balance}
+      />
     </Layout>
   );
 }

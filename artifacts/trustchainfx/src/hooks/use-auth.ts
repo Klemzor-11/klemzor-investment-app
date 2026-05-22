@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 export interface User {
   email: string;
   name?: string;
@@ -18,19 +16,19 @@ export function consumeLoginRedirect(): string {
   return path || "/dashboard";
 }
 
-export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
+// Lazy initializer — reads localStorage once on mount with no flash
+function loadUser(): User | null {
+  try {
+    const s = localStorage.getItem("trustchain_user");
+    if (s) return JSON.parse(s) as User;
+  } catch { /* ignore */ }
+  return null;
+}
 
-  useEffect(() => {
-    const stored = localStorage.getItem("trustchain_user");
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch {
-        // ignore
-      }
-    }
-  }, []);
+import { useState } from "react";
+
+export function useAuth() {
+  const [user, setUser] = useState<User | null>(loadUser);
 
   const login = (email: string, name?: string) => {
     const u: User = { email, name, loggedIn: true };
@@ -40,6 +38,8 @@ export function useAuth() {
 
   const logout = () => {
     localStorage.removeItem("trustchain_user");
+    localStorage.removeItem("trustchain_balance");
+    localStorage.removeItem("trustchain_transactions");
     setUser(null);
   };
 

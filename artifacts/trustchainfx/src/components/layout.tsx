@@ -2,16 +2,13 @@ import { useState, useRef, useEffect, ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
+import { useTheme } from "@/hooks/use-theme";
 import { LANGUAGES } from "@/lib/translations";
-import { Shield, Globe, ChevronDown, Menu, X } from "lucide-react";
+import { Shield, Globe, ChevronDown, Menu, X, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChatWidget } from "@/components/chat-widget";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { motion, AnimatePresence } from "framer-motion";
 
 type LegalDoc = "privacy" | "terms" | "legal" | null;
 
@@ -54,13 +51,13 @@ For regulatory inquiries, contact legal@trustchainfx.io.`,
 export function Layout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const { t, locale, setLocale } = useLanguage();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [location] = useLocation();
   const [langOpen, setLangOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [legalDoc, setLegalDoc] = useState<LegalDoc>(null);
   const langRef = useRef<HTMLDivElement>(null);
 
-  // Close lang dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (langRef.current && !langRef.current.contains(e.target as Node)) {
@@ -71,7 +68,6 @@ export function Layout({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  // Close mobile menu on route change
   useEffect(() => { setMobileOpen(false); }, [location]);
 
   const currentLang = LANGUAGES.find((l) => l.code === locale) ?? LANGUAGES[0];
@@ -85,10 +81,10 @@ export function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-primary selection:text-primary-foreground">
       {/* ── NAVBAR ── */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
         <div className="container mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center space-x-2 shrink-0">
             <Shield className="w-6 h-6 text-primary" />
             <span className="font-bold text-lg tracking-wide uppercase text-foreground">
               TrustChain<span className="text-primary">FX</span>
@@ -108,14 +104,24 @@ export function Layout({ children }: { children: ReactNode }) {
             ))}
           </nav>
 
-          {/* Right side */}
-          <div className="flex items-center space-x-2">
+          {/* Right controls */}
+          <div className="flex items-center gap-1.5">
+            {/* Dark/light toggle */}
+            <button
+              onClick={toggleTheme}
+              data-testid="button-theme-toggle"
+              className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
             {/* Language switcher */}
             <div className="relative" ref={langRef}>
               <button
                 onClick={() => setLangOpen((v) => !v)}
                 data-testid="button-language-switcher"
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors border border-border/40"
+                className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors border border-border/40"
               >
                 <Globe className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">{currentLang.flag} {currentLang.label}</span>
@@ -141,7 +147,7 @@ export function Layout({ children }: { children: ReactNode }) {
             </div>
 
             {/* Auth buttons — desktop */}
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-1.5">
               {user?.loggedIn ? (
                 <>
                   <Link href="/dashboard">
@@ -169,7 +175,7 @@ export function Layout({ children }: { children: ReactNode }) {
               )}
             </div>
 
-            {/* Hamburger — mobile only */}
+            {/* Hamburger — mobile */}
             <button
               className="md:hidden p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
               onClick={() => setMobileOpen((v) => !v)}
@@ -181,44 +187,51 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        {/* Mobile menu dropdown */}
-        {mobileOpen && (
-          <div className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur px-4 py-4 space-y-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-secondary ${location === link.href ? "text-primary bg-primary/5" : "text-muted-foreground"}`}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <div className="pt-2 border-t border-border/40 mt-2 space-y-1">
-              {user?.loggedIn ? (
-                <>
-                  <Link href="/dashboard" className="block px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors">
-                    {t.nav.dashboard}
-                  </Link>
-                  <button
-                    onClick={logout}
-                    className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors"
+        {/* Mobile menu */}
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur overflow-hidden"
+            >
+              <div className="px-4 py-3 space-y-1">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-secondary ${location === link.href ? "text-primary bg-primary/5" : "text-muted-foreground"}`}
                   >
-                    {t.nav.logout}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login" className="block px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors">
-                    {t.nav.login}
+                    {link.label}
                   </Link>
-                  <Link href="/signup" className="block px-3 py-2.5 rounded-lg text-sm font-semibold text-primary hover:bg-primary/10 transition-colors">
-                    Sign Up
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        )}
+                ))}
+                <div className="pt-2 border-t border-border/40 mt-1 space-y-1">
+                  {user?.loggedIn ? (
+                    <>
+                      <Link href="/dashboard" className="block px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors">
+                        {t.nav.dashboard}
+                      </Link>
+                      <button onClick={logout} className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors">
+                        {t.nav.logout}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link href="/login" className="block px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors">
+                        {t.nav.login}
+                      </Link>
+                      <Link href="/signup" className="block px-3 py-2.5 rounded-lg text-sm font-semibold text-primary hover:bg-primary/10 transition-colors">
+                        Sign Up
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       <main className="flex-1 flex flex-col">
@@ -255,32 +268,16 @@ export function Layout({ children }: { children: ReactNode }) {
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Legal</h4>
               <ul className="space-y-2">
-                <li>
-                  <button onClick={() => setLegalDoc("privacy")} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">
-                    {t.footer.privacy}
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => setLegalDoc("terms")} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">
-                    {t.footer.terms}
-                  </button>
-                </li>
-                <li>
-                  <button onClick={() => setLegalDoc("legal")} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">
-                    {t.footer.legal}
-                  </button>
-                </li>
+                <li><button onClick={() => setLegalDoc("privacy")} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">{t.footer.privacy}</button></li>
+                <li><button onClick={() => setLegalDoc("terms")} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">{t.footer.terms}</button></li>
+                <li><button onClick={() => setLegalDoc("legal")} className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left">{t.footer.legal}</button></li>
               </ul>
             </div>
 
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">{t.footer.contact}</h4>
               <ul className="space-y-2">
-                <li>
-                  <a href="mailto:support@trustchainfx.io" className="text-sm text-muted-foreground font-mono hover:text-primary transition-colors">
-                    support@trustchainfx.io
-                  </a>
-                </li>
+                <li><a href="mailto:support@trustchainfx.io" className="text-sm text-muted-foreground font-mono hover:text-primary transition-colors">support@trustchainfx.io</a></li>
                 <li><span className="text-sm text-muted-foreground">Frankfurt, Germany</span></li>
               </ul>
             </div>
