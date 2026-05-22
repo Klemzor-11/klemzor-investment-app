@@ -1,4 +1,5 @@
 import { Layout } from "@/components/layout";
+import { PriceTicker } from "@/components/price-ticker";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
@@ -6,57 +7,23 @@ import { ArrowRight, BarChart3, ShieldCheck, Zap, Star } from "lucide-react";
 import { useLanguage } from "@/hooks/use-language";
 
 const HERO_IMAGES = [
-  {
-    src: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=600&q=80",
-    alt: "Bitcoin coin",
-    className: "rounded-2xl w-full h-40 object-cover shadow-lg",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&q=80",
-    alt: "Stock trading charts",
-    className: "rounded-2xl w-full h-40 object-cover shadow-lg",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1559526324-593bc073d938?w=600&q=80",
-    alt: "Gold coins investment",
-    className: "rounded-2xl w-full h-40 object-cover shadow-lg",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&q=80",
-    alt: "Business investment team",
-    className: "rounded-2xl w-full h-40 object-cover shadow-lg",
-  },
+  { src: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=600&q=80",  alt: "Bitcoin coin",           className: "rounded-2xl w-full h-40 object-cover shadow-lg" },
+  { src: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&q=80",  alt: "Stock trading charts",   className: "rounded-2xl w-full h-40 object-cover shadow-lg" },
+  { src: "https://images.unsplash.com/photo-1559526324-593bc073d938?w=600&q=80",  alt: "Gold coins investment",  className: "rounded-2xl w-full h-40 object-cover shadow-lg" },
+  { src: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&q=80",  alt: "Business investment team", className: "rounded-2xl w-full h-40 object-cover shadow-lg" },
 ];
 
 const STATS = [
   { value: "$2.4B+", label: "Assets Managed" },
   { value: "150K+", label: "Active Investors" },
-  { value: "190+", label: "Countries" },
+  { value: "190+",  label: "Countries" },
   { value: "99.9%", label: "Uptime" },
 ];
 
 const TESTIMONIALS = [
-  {
-    name: "Marcus W.",
-    role: "Portfolio Manager, Frankfurt",
-    quote: "TrustChainFX gave me institutional access to algorithmic yields I couldn't get anywhere else. My Growth package has returned 14% every month for six months straight.",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&q=80",
-    stars: 5,
-  },
-  {
-    name: "Sofia R.",
-    role: "Independent Investor, Madrid",
-    quote: "I started with the Starter pack at $50 just to test it. Within 30 days I upgraded to Premium. The transparency and consistent returns are unlike anything I've used.",
-    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b193?w=120&q=80",
-    stars: 5,
-  },
-  {
-    name: "James T.",
-    role: "Entrepreneur, London",
-    quote: "The security architecture is genuinely impressive. Cold storage multi-sig with real-time monitoring. I sleep well knowing my capital is protected at every layer.",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&q=80",
-    stars: 5,
-  },
+  { name: "Marcus W.", role: "Portfolio Manager, Frankfurt", quote: "TrustChainFX gave me institutional access to algorithmic yields I couldn't get anywhere else. My Growth package has returned 14% every month for six months straight.", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&q=80", stars: 5 },
+  { name: "Sofia R.", role: "Independent Investor, Madrid", quote: "I started with the Starter pack at $50 just to test it. Within 30 days I upgraded to Premium. The transparency and consistent returns are unlike anything I've used.", avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b193?w=120&q=80", stars: 5 },
+  { name: "James T.", role: "Entrepreneur, London", quote: "The security architecture is genuinely impressive. Cold storage multi-sig with real-time monitoring. I sleep well knowing my capital is protected at every layer.", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&q=80", stars: 5 },
 ];
 
 const GALLERY = [
@@ -70,6 +37,9 @@ export default function Home() {
 
   return (
     <Layout>
+      {/* ── LIVE PRICE TICKER ── */}
+      <PriceTicker />
+
       {/* ── HERO ── */}
       <div className="relative overflow-hidden">
         <div className="absolute top-[-10%] left-[-5%] w-[45%] h-[60%] rounded-full bg-primary/8 blur-[140px] pointer-events-none" />
@@ -93,21 +63,12 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row items-start gap-4">
               <Link href="/signup">
-                <Button
-                  size="lg"
-                  data-testid="button-get-started"
-                  className="text-lg h-13 px-8 bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_24px_rgba(245,158,11,0.35)]"
-                >
+                <Button size="lg" data-testid="button-get-started" className="text-lg h-13 px-8 bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_24px_rgba(245,158,11,0.35)]">
                   {t.home.cta1} <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               <Link href="/packages">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  data-testid="button-view-packages"
-                  className="text-lg h-13 px-8 border-border hover:bg-secondary"
-                >
+                <Button size="lg" variant="outline" data-testid="button-view-packages" className="text-lg h-13 px-8 border-border hover:bg-secondary">
                   {t.home.cta2}
                 </Button>
               </Link>
@@ -141,13 +102,7 @@ export default function Home() {
         <div className="container mx-auto px-4 md:px-8 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {STATS.map((stat, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.08 }}
-              >
+              <motion.div key={i} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.08 }}>
                 <div className="text-3xl font-mono font-bold text-primary">{stat.value}</div>
                 <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
               </motion.div>
@@ -159,13 +114,7 @@ export default function Home() {
       {/* ── FEATURES ── */}
       <div className="bg-card/30 py-24">
         <div className="container mx-auto px-4 md:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-14"
-          >
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Built for serious capital</h2>
             <p className="text-muted-foreground max-w-xl mx-auto">Every decision at TrustChainFX is made to protect and grow your investment with precision.</p>
           </motion.div>
@@ -184,9 +133,7 @@ export default function Home() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 className="flex flex-col items-center text-center p-8 rounded-2xl border border-border/40 bg-card/50 hover:border-primary/30 transition-colors"
               >
-                <div className={`w-16 h-16 rounded-2xl ${feat.bg} flex items-center justify-center mb-6 ${feat.color}`}>
-                  {feat.icon}
-                </div>
+                <div className={`w-16 h-16 rounded-2xl ${feat.bg} flex items-center justify-center mb-6 ${feat.color}`}>{feat.icon}</div>
                 <h3 className="text-xl font-semibold mb-3">{feat.title}</h3>
                 <p className="text-muted-foreground leading-relaxed">{feat.desc}</p>
               </motion.div>
@@ -200,19 +147,8 @@ export default function Home() {
         <div className="container mx-auto px-4 md:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {GALLERY.map((img, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0.97 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="overflow-hidden rounded-2xl border border-border/30 shadow-lg"
-              >
-                <img
-                  src={img.src}
-                  alt={img.alt}
-                  className="w-full h-56 object-cover hover:scale-105 transition-transform duration-700"
-                />
+              <motion.div key={i} initial={{ opacity: 0, scale: 0.97 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.1 }} className="overflow-hidden rounded-2xl border border-border/30 shadow-lg">
+                <img src={img.src} alt={img.alt} className="w-full h-56 object-cover hover:scale-105 transition-transform duration-700" />
               </motion.div>
             ))}
           </div>
@@ -222,19 +158,13 @@ export default function Home() {
       {/* ── TESTIMONIALS ── */}
       <div className="bg-card/30 border-t border-border/40 py-24">
         <div className="container mx-auto px-4 md:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-14"
-          >
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }} className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">Real people. Real returns.</h2>
             <p className="text-muted-foreground max-w-lg mx-auto">Thousands of investors across 190+ countries trust TrustChainFX with their capital.</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {TESTIMONIALS.map((t, i) => (
+            {TESTIMONIALS.map((testimonial, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
@@ -244,20 +174,16 @@ export default function Home() {
                 className="bg-card/60 border border-border/50 rounded-2xl p-6 flex flex-col gap-4 hover:border-primary/25 transition-colors"
               >
                 <div className="flex gap-1">
-                  {Array.from({ length: t.stars }).map((_, s) => (
+                  {Array.from({ length: testimonial.stars }).map((_, s) => (
                     <Star key={s} className="w-4 h-4 fill-primary text-primary" />
                   ))}
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed italic">"{t.quote}"</p>
+                <p className="text-sm text-muted-foreground leading-relaxed italic">"{testimonial.quote}"</p>
                 <div className="flex items-center gap-3 mt-auto pt-4 border-t border-border/40">
-                  <img
-                    src={t.avatar}
-                    alt={t.name}
-                    className="w-10 h-10 rounded-full object-cover border border-border/50"
-                  />
+                  <img src={testimonial.avatar} alt={testimonial.name} className="w-10 h-10 rounded-full object-cover border border-border/50" />
                   <div>
-                    <p className="text-sm font-semibold">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">{t.role}</p>
+                    <p className="text-sm font-semibold">{testimonial.name}</p>
+                    <p className="text-xs text-muted-foreground">{testimonial.role}</p>
                   </div>
                 </div>
               </motion.div>
@@ -270,12 +196,7 @@ export default function Home() {
       <div className="relative overflow-hidden border-t border-border/40">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5 pointer-events-none" />
         <div className="container mx-auto px-4 md:px-8 py-20 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.55 }}>
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-5">
               Start with as little as <span className="text-primary">$50</span>.
             </h2>
@@ -283,10 +204,7 @@ export default function Home() {
               Deploy capital today and receive your first yield distribution within 30 days.
             </p>
             <Link href="/signup">
-              <Button
-                size="lg"
-                className="text-lg h-14 px-10 bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_30px_rgba(245,158,11,0.3)]"
-              >
+              <Button size="lg" className="text-lg h-14 px-10 bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_30px_rgba(245,158,11,0.3)]">
                 Open Your Account <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>

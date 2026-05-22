@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import { useAuth, consumeLoginRedirect } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
+import { storePendingRef, processReferral } from "@/hooks/use-referral";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, CheckCircle2 } from "lucide-react";
+import { Shield, CheckCircle2, Gift } from "lucide-react";
 import { motion } from "framer-motion";
 
 const SIGNUP_TEXT: Record<string, Record<string, string>> = {
@@ -38,6 +39,17 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
+  const [refCode, setRefCode] = useState<string | null>(null);
+
+  // Read referral code from URL (?ref=TFXABC123)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      setRefCode(ref);
+      storePendingRef(ref);
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +57,10 @@ export default function Signup() {
     if (!name.trim()) { setError("Please enter your full name."); return; }
     if (password !== confirm) { setError(s.mismatch); return; }
     if (password.length < 6) { setError(s.passwordHint); return; }
+
+    // Process referral if one exists
+    if (refCode) processReferral(email, name.trim(), refCode);
+
     login(email, name.trim());
     const redirect = consumeLoginRedirect();
     setLocation(redirect);
@@ -57,18 +73,12 @@ export default function Signup() {
         <div className="absolute bottom-1/4 right-[-5%] w-72 h-72 rounded-full bg-accent/8 blur-[100px] pointer-events-none" />
 
         <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="hidden lg:flex flex-col gap-8"
-          >
+          {/* Left panel */}
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="hidden lg:flex flex-col gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Shield className="w-5 h-5 text-primary" />
-                <span className="font-bold tracking-wide uppercase text-sm text-foreground/70">
-                  TrustChain<span className="text-primary">FX</span>
-                </span>
+                <span className="font-bold tracking-wide uppercase text-sm text-foreground/70">TrustChain<span className="text-primary">FX</span></span>
               </div>
               <h2 className="text-3xl font-bold tracking-tight mb-3 leading-tight">
                 Your capital, working <span className="text-primary">around the clock</span>.
@@ -77,7 +87,6 @@ export default function Signup() {
                 Access institutional-grade algorithmic yields. Deploy as little as $50 and watch it grow with military-grade security backing every transaction.
               </p>
             </div>
-
             <div className="space-y-3">
               {perks.map((perk) => (
                 <div key={perk} className="flex items-center gap-3">
@@ -86,7 +95,6 @@ export default function Signup() {
                 </div>
               ))}
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-card/50 border border-border/50 rounded-xl p-4">
                 <div className="text-2xl font-mono font-bold text-primary">$2.4B+</div>
@@ -99,11 +107,8 @@ export default function Signup() {
             </div>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
+          {/* Right — form */}
+          <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.1 }}>
             <div className="bg-card border border-border rounded-2xl shadow-2xl p-8">
               <div className="flex justify-center mb-6">
                 <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-[0_0_15px_rgba(245,158,11,0.2)]">
@@ -114,55 +119,41 @@ export default function Signup() {
               <h2 className="text-2xl font-bold text-center mb-1 tracking-tight">{s.title}</h2>
               <p className="text-muted-foreground text-center mb-6 text-sm">{s.subtitle}</p>
 
+              {/* Referral banner */}
+              {refCode && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 text-xs bg-primary/10 border border-primary/20 rounded-lg px-3 py-2 mb-4 text-primary"
+                >
+                  <Gift className="w-3.5 h-3.5 shrink-0" />
+                  <span>You were referred by a TrustChainFX investor. Both of you earn a bonus when you make your first investment!</span>
+                </motion.div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="name" className="text-xs uppercase tracking-widest text-muted-foreground">{s.nameLabel}</Label>
-                  <Input
-                    id="name" type="text" placeholder={s.namePlaceholder}
-                    className="bg-background border-border focus:border-primary/50"
-                    value={name} onChange={(e) => setName(e.target.value)}
-                    data-testid="input-name" required
-                  />
+                  <Input id="name" type="text" placeholder={s.namePlaceholder} className="bg-background border-border focus:border-primary/50" value={name} onChange={(e) => setName(e.target.value)} data-testid="input-name" required />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="signup-email" className="text-xs uppercase tracking-widest text-muted-foreground">{s.emailLabel}</Label>
-                  <Input
-                    id="signup-email" type="email" placeholder={s.emailPlaceholder}
-                    className="bg-background border-border focus:border-primary/50 font-mono"
-                    value={email} onChange={(e) => setEmail(e.target.value)}
-                    data-testid="input-signup-email" required
-                  />
+                  <Input id="signup-email" type="email" placeholder={s.emailPlaceholder} className="bg-background border-border focus:border-primary/50 font-mono" value={email} onChange={(e) => setEmail(e.target.value)} data-testid="input-signup-email" required />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="signup-password" className="text-xs uppercase tracking-widest text-muted-foreground">{s.passwordLabel}</Label>
-                  <Input
-                    id="signup-password" type="password" placeholder="••••••••"
-                    className="bg-background border-border focus:border-primary/50 font-mono tracking-widest"
-                    value={password} onChange={(e) => setPassword(e.target.value)}
-                    data-testid="input-signup-password" required
-                  />
+                  <Input id="signup-password" type="password" placeholder="••••••••" className="bg-background border-border focus:border-primary/50 font-mono tracking-widest" value={password} onChange={(e) => setPassword(e.target.value)} data-testid="input-signup-password" required />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="confirm-password" className="text-xs uppercase tracking-widest text-muted-foreground">{s.confirmLabel}</Label>
-                  <Input
-                    id="confirm-password" type="password" placeholder="••••••••"
-                    className="bg-background border-border focus:border-primary/50 font-mono tracking-widest"
-                    value={confirm} onChange={(e) => setConfirm(e.target.value)}
-                    data-testid="input-confirm-password" required
-                  />
+                  <Input id="confirm-password" type="password" placeholder="••••••••" className="bg-background border-border focus:border-primary/50 font-mono tracking-widest" value={confirm} onChange={(e) => setConfirm(e.target.value)} data-testid="input-confirm-password" required />
                 </div>
 
                 {error && (
-                  <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
-                    {error}
-                  </div>
+                  <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">{error}</div>
                 )}
 
-                <Button
-                  type="submit"
-                  data-testid="button-submit-signup"
-                  className="w-full h-12 font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all mt-2"
-                >
+                <Button type="submit" data-testid="button-submit-signup" className="w-full h-12 font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all mt-2">
                   {s.submitBtn}
                 </Button>
               </form>

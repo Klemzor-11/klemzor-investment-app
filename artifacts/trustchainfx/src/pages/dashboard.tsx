@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useBalance } from "@/hooks/use-balance";
+import { useReferral } from "@/hooks/use-referral";
 import { useLanguage } from "@/hooks/use-language";
 import { Layout } from "@/components/layout";
 import { DepositModal } from "@/components/deposit-modal";
@@ -9,7 +10,7 @@ import { WithdrawModal } from "@/components/withdraw-modal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { ArrowUpRight, Wallet, Activity, Briefcase, Calculator, PackagePlus, ChevronDown, ArrowDownLeft, ArrowUpRight as WithdrawIcon } from "lucide-react";
+import { ArrowUpRight, Wallet, Activity, Briefcase, Calculator, PackagePlus, ChevronDown, ArrowDownLeft, ArrowUpRight as WithdrawIcon, Gift, Users, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const chartData = [
@@ -29,6 +30,8 @@ export default function Dashboard() {
   const [showAllTx, setShowAllTx] = useState(false);
   const [depositOpen, setDepositOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+
+  const { code, referrals, totalBonus } = useReferral(user?.email);
 
   if (!user) {
     setLocation("/login");
@@ -213,6 +216,35 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Referral widget */}
+        <Card className="mt-8 bg-gradient-to-r from-primary/10 via-card/50 to-accent/10 border-primary/20">
+          <CardContent className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-5 px-6">
+            <div className="flex items-center gap-4">
+              <div className="p-2.5 bg-primary/15 rounded-xl text-primary shrink-0">
+                <Gift className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">Referral Programme — Earn $25 per investor you invite</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Your code: <span className="font-mono text-primary font-bold">{code}</span>
+                  {referrals.length > 0 && (
+                    <span className="ml-3 text-muted-foreground">
+                      <Users className="w-3 h-3 inline mr-1" />
+                      {referrals.length} referral{referrals.length !== 1 ? "s" : ""} · <span className="text-emerald-500 font-medium">${totalBonus} earned</span>
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+            <Link href="/referral" className="shrink-0">
+              <Button size="sm" variant="outline" className="border-primary/30 hover:bg-primary/10 hover:text-primary gap-1.5 whitespace-nowrap">
+                {referrals.length > 0 ? "View Referrals" : "Get Your Link"}
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </motion.div>
 
       <DepositModal
