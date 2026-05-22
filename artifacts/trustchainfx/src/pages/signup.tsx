@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, consumeLoginRedirect } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
@@ -10,14 +10,14 @@ import { Shield, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 const SIGNUP_TEXT: Record<string, Record<string, string>> = {
-  "en-us": { title: "Create Account", subtitle: "Join thousands of investors worldwide", nameLabel: "Full Name", namePlaceholder: "John Smith", emailLabel: "Email Address", emailPlaceholder: "investor@domain.com", passwordLabel: "Password", confirmLabel: "Confirm Password", submitBtn: "Create My Account", loginPrompt: "Already have an account?", loginCta: "Sign In", mismatch: "Passwords do not match", passwordHint: "Minimum 6 characters" },
-  "en-gb": { title: "Create Account", subtitle: "Join thousands of investors worldwide", nameLabel: "Full Name", namePlaceholder: "John Smith", emailLabel: "Email Address", emailPlaceholder: "investor@domain.co.uk", passwordLabel: "Password", confirmLabel: "Confirm Password", submitBtn: "Create My Account", loginPrompt: "Already have an account?", loginCta: "Sign In", mismatch: "Passwords do not match", passwordHint: "Minimum 6 characters" },
-  "es": { title: "Crear Cuenta", subtitle: "Únete a miles de inversores en todo el mundo", nameLabel: "Nombre Completo", namePlaceholder: "Juan García", emailLabel: "Correo Electrónico", emailPlaceholder: "inversor@dominio.com", passwordLabel: "Contraseña", confirmLabel: "Confirmar Contraseña", submitBtn: "Crear Mi Cuenta", loginPrompt: "¿Ya tienes una cuenta?", loginCta: "Iniciar sesión", mismatch: "Las contraseñas no coinciden", passwordHint: "Mínimo 6 caracteres" },
-  "fr": { title: "Créer un Compte", subtitle: "Rejoignez des milliers d'investisseurs dans le monde", nameLabel: "Nom Complet", namePlaceholder: "Jean Dupont", emailLabel: "Adresse E-mail", emailPlaceholder: "investisseur@domaine.fr", passwordLabel: "Mot de Passe", confirmLabel: "Confirmer le Mot de Passe", submitBtn: "Créer Mon Compte", loginPrompt: "Vous avez déjà un compte?", loginCta: "Se Connecter", mismatch: "Les mots de passe ne correspondent pas", passwordHint: "Minimum 6 caractères" },
-  "zh": { title: "创建账户", subtitle: "加入全球数千名投资者", nameLabel: "全名", namePlaceholder: "张伟", emailLabel: "电子邮件", emailPlaceholder: "investor@domain.com", passwordLabel: "密码", confirmLabel: "确认密码", submitBtn: "创建我的账户", loginPrompt: "已有账户？", loginCta: "登录", mismatch: "密码不匹配", passwordHint: "最少6个字符" },
-  "de": { title: "Konto Erstellen", subtitle: "Schließen Sie sich Tausenden von Investoren weltweit an", nameLabel: "Vollständiger Name", namePlaceholder: "Max Mustermann", emailLabel: "E-Mail-Adresse", emailPlaceholder: "investor@domain.de", passwordLabel: "Passwort", confirmLabel: "Passwort Bestätigen", submitBtn: "Mein Konto Erstellen", loginPrompt: "Haben Sie bereits ein Konto?", loginCta: "Anmelden", mismatch: "Passwörter stimmen nicht überein", passwordHint: "Mindestens 6 Zeichen" },
-  "pt": { title: "Criar Conta", subtitle: "Junte-se a milhares de investidores no mundo todo", nameLabel: "Nome Completo", namePlaceholder: "João Silva", emailLabel: "Endereço de E-mail", emailPlaceholder: "investidor@dominio.com.br", passwordLabel: "Senha", confirmLabel: "Confirmar Senha", submitBtn: "Criar Minha Conta", loginPrompt: "Já tem uma conta?", loginCta: "Entrar", mismatch: "As senhas não coincidem", passwordHint: "Mínimo 6 caracteres" },
-  "ja": { title: "アカウント作成", subtitle: "世界中の何千人もの投資家に参加する", nameLabel: "フルネーム", namePlaceholder: "山田 太郎", emailLabel: "メールアドレス", emailPlaceholder: "investor@domain.jp", passwordLabel: "パスワード", confirmLabel: "パスワード確認", submitBtn: "アカウントを作成", loginPrompt: "すでにアカウントをお持ちですか？", loginCta: "サインイン", mismatch: "パスワードが一致しません", passwordHint: "最低6文字" },
+  "en-us": { title: "Create Account", subtitle: "Join thousands of investors worldwide", nameLabel: "Full Name", namePlaceholder: "John Smith", emailLabel: "Email Address", emailPlaceholder: "investor@domain.com", passwordLabel: "Password", confirmLabel: "Confirm Password", submitBtn: "Create My Account", loginPrompt: "Already have an account?", loginCta: "Sign In", mismatch: "Passwords do not match", passwordHint: "Password must be at least 6 characters" },
+  "en-gb": { title: "Create Account", subtitle: "Join thousands of investors worldwide", nameLabel: "Full Name", namePlaceholder: "John Smith", emailLabel: "Email Address", emailPlaceholder: "investor@domain.co.uk", passwordLabel: "Password", confirmLabel: "Confirm Password", submitBtn: "Create My Account", loginPrompt: "Already have an account?", loginCta: "Sign In", mismatch: "Passwords do not match", passwordHint: "Password must be at least 6 characters" },
+  "es": { title: "Crear Cuenta", subtitle: "Únete a miles de inversores en todo el mundo", nameLabel: "Nombre Completo", namePlaceholder: "Juan García", emailLabel: "Correo Electrónico", emailPlaceholder: "inversor@dominio.com", passwordLabel: "Contraseña", confirmLabel: "Confirmar Contraseña", submitBtn: "Crear Mi Cuenta", loginPrompt: "¿Ya tienes una cuenta?", loginCta: "Iniciar sesión", mismatch: "Las contraseñas no coinciden", passwordHint: "La contraseña debe tener al menos 6 caracteres" },
+  "fr": { title: "Créer un Compte", subtitle: "Rejoignez des milliers d'investisseurs dans le monde", nameLabel: "Nom Complet", namePlaceholder: "Jean Dupont", emailLabel: "Adresse E-mail", emailPlaceholder: "investisseur@domaine.fr", passwordLabel: "Mot de Passe", confirmLabel: "Confirmer le Mot de Passe", submitBtn: "Créer Mon Compte", loginPrompt: "Vous avez déjà un compte?", loginCta: "Se Connecter", mismatch: "Les mots de passe ne correspondent pas", passwordHint: "Le mot de passe doit contenir au moins 6 caractères" },
+  "zh": { title: "创建账户", subtitle: "加入全球数千名投资者", nameLabel: "全名", namePlaceholder: "张伟", emailLabel: "电子邮件", emailPlaceholder: "investor@domain.com", passwordLabel: "密码", confirmLabel: "确认密码", submitBtn: "创建我的账户", loginPrompt: "已有账户？", loginCta: "登录", mismatch: "密码不匹配", passwordHint: "密码至少需要6个字符" },
+  "de": { title: "Konto Erstellen", subtitle: "Schließen Sie sich Tausenden von Investoren weltweit an", nameLabel: "Vollständiger Name", namePlaceholder: "Max Mustermann", emailLabel: "E-Mail-Adresse", emailPlaceholder: "investor@domain.de", passwordLabel: "Passwort", confirmLabel: "Passwort Bestätigen", submitBtn: "Mein Konto Erstellen", loginPrompt: "Haben Sie bereits ein Konto?", loginCta: "Anmelden", mismatch: "Passwörter stimmen nicht überein", passwordHint: "Passwort muss mindestens 6 Zeichen lang sein" },
+  "pt": { title: "Criar Conta", subtitle: "Junte-se a milhares de investidores no mundo todo", nameLabel: "Nome Completo", namePlaceholder: "João Silva", emailLabel: "Endereço de E-mail", emailPlaceholder: "investidor@dominio.com.br", passwordLabel: "Senha", confirmLabel: "Confirmar Senha", submitBtn: "Criar Minha Conta", loginPrompt: "Já tem uma conta?", loginCta: "Entrar", mismatch: "As senhas não coincidem", passwordHint: "A senha deve ter pelo menos 6 caracteres" },
+  "ja": { title: "アカウント作成", subtitle: "世界中の何千人もの投資家に参加する", nameLabel: "フルネーム", namePlaceholder: "山田 太郎", emailLabel: "メールアドレス", emailPlaceholder: "investor@domain.jp", passwordLabel: "パスワード", confirmLabel: "パスワード確認", submitBtn: "アカウントを作成", loginPrompt: "すでにアカウントをお持ちですか？", loginCta: "サインイン", mismatch: "パスワードが一致しません", passwordHint: "パスワードは6文字以上必要です" },
 };
 
 const perks = [
@@ -42,12 +42,12 @@ export default function Signup() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (!name.trim()) { setError("Please enter your full name."); return; }
     if (password !== confirm) { setError(s.mismatch); return; }
     if (password.length < 6) { setError(s.passwordHint); return; }
-    const userData = { email, name, loggedIn: true };
-    localStorage.setItem("trustchain_user", JSON.stringify(userData));
-    login(email);
-    setLocation("/dashboard");
+    login(email, name.trim());
+    const redirect = consumeLoginRedirect();
+    setLocation(redirect);
   };
 
   return (

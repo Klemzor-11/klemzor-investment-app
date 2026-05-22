@@ -4,9 +4,42 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Check, ShieldAlert } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, setLoginRedirect } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
 import { useLocation } from "wouter";
+
+const PACKAGES = [
+  {
+    id: "starter",
+    name: "Starter",
+    description: "Entry-level algorithm execution for smaller portfolios.",
+    min: 50,
+    roi: 8,
+    lock: 30,
+    features: ["Basic support", "Standard algorithms", "Daily compounding", "30-day lock period"],
+    popular: false,
+  },
+  {
+    id: "growth",
+    name: "Growth",
+    description: "Our core offering. Optimised HFT strategies for balanced risk/reward.",
+    min: 200,
+    roi: 14,
+    lock: 60,
+    features: ["Priority support", "Advanced HFT models", "Weekly distributions", "60-day lock period", "Dedicated dashboard insights"],
+    popular: true,
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    description: "Institutional-grade deployment with maximum capital efficiency.",
+    min: 1000,
+    roi: 22,
+    lock: 90,
+    features: ["Dedicated manager", "Bespoke strategy allocation", "Instant withdrawals post-lock", "90-day lock period", "VIP access & early features"],
+    popular: false,
+  },
+];
 
 export default function Packages() {
   const { toast } = useToast();
@@ -14,41 +47,9 @@ export default function Packages() {
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
 
-  const packages = [
-    {
-      id: "starter",
-      name: "Starter",
-      description: t.packages.subtitle.split(".")[0],
-      min: 50,
-      roi: 8,
-      lock: 30,
-      features: ["Basic support", "Standard algorithms", "Daily compounding", "30-day lock period"],
-      popular: false,
-    },
-    {
-      id: "growth",
-      name: "Growth",
-      description: "Our core offering. Optimised HFT strategies for balanced risk/reward.",
-      min: 200,
-      roi: 14,
-      lock: 60,
-      features: ["Priority support", "Advanced HFT models", "Weekly distributions", "60-day lock period", "Dedicated dashboard insights"],
-      popular: true,
-    },
-    {
-      id: "premium",
-      name: "Premium",
-      description: "Institutional-grade deployment with maximum capital efficiency.",
-      min: 1000,
-      roi: 22,
-      lock: 90,
-      features: ["Dedicated manager", "Bespoke strategy allocation", "Instant withdrawals post-lock", "90-day lock period", "VIP access & early features"],
-      popular: false,
-    },
-  ];
-
   const handleInvest = (pkgName: string) => {
     if (!user) {
+      setLoginRedirect("/packages");
       toast({
         title: t.packages.authRequired,
         description: t.packages.authDesc,
@@ -59,7 +60,7 @@ export default function Packages() {
     }
     toast({
       title: t.packages.investInitiated,
-      description: `${pkgName} — ${t.packages.investDesc}`,
+      description: `${pkgName} package — ${t.packages.investDesc}`,
       className: "border-primary bg-card text-card-foreground",
     });
   };
@@ -76,7 +77,7 @@ export default function Packages() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {packages.map((pkg, idx) => (
+          {PACKAGES.map((pkg, idx) => (
             <motion.div
               key={pkg.id}
               initial={{ opacity: 0, y: 20 }}
@@ -120,7 +121,7 @@ export default function Packages() {
                 </CardContent>
                 <CardFooter>
                   <Button
-                    className={`w-full ${pkg.popular ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-secondary hover:bg-secondary/80"}`}
+                    className={`w-full ${pkg.popular ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-secondary hover:bg-secondary/80 text-foreground"}`}
                     onClick={() => handleInvest(pkg.name)}
                     data-testid={`button-invest-${pkg.id}`}
                   >

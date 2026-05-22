@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
@@ -6,8 +6,8 @@ import { Layout } from "@/components/layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { ArrowUpRight, Wallet, Activity, Briefcase, Calculator, PackagePlus } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowUpRight, Wallet, Activity, Briefcase, Calculator, PackagePlus, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const chartData = [
   { month: "Jan", value: 12500 },
@@ -18,16 +18,20 @@ const chartData = [
   { month: "Jun", value: 19850 },
 ];
 
-const transactions = [
+const ALL_TRANSACTIONS = [
   { id: "TX-9021", type: "Yield Distribution", amount: "+$450.00", date: "Today, 09:41 AM", status: "Completed" },
   { id: "TX-8914", type: "Package Upgrade (Growth)", amount: "-$2,000.00", date: "Yesterday, 14:22 PM", status: "Completed" },
   { id: "TX-8802", type: "Initial Deposit", amount: "+$12,500.00", date: "Jan 12, 10:00 AM", status: "Completed" },
+  { id: "TX-8701", type: "Yield Distribution", amount: "+$380.00", date: "Jan 8, 09:00 AM", status: "Completed" },
+  { id: "TX-8654", type: "Yield Distribution", amount: "+$320.00", date: "Dec 28, 09:05 AM", status: "Completed" },
+  { id: "TX-8512", type: "Starter Package", amount: "-$500.00", date: "Dec 15, 11:30 AM", status: "Completed" },
 ];
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
+  const [showAllTx, setShowAllTx] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -36,6 +40,9 @@ export default function Dashboard() {
   }, [user, setLocation]);
 
   if (!user) return null;
+
+  const displayName = user.name || user.email;
+  const visibleTransactions = showAllTx ? ALL_TRANSACTIONS : ALL_TRANSACTIONS.slice(0, 3);
 
   return (
     <Layout>
@@ -47,17 +54,17 @@ export default function Dashboard() {
         >
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{t.dashboard.title}</h1>
-            <p className="text-muted-foreground mt-1">{t.dashboard.subtitle}, {user.email}</p>
+            <p className="text-muted-foreground mt-1">{t.dashboard.subtitle}, <span className="text-foreground font-medium">{displayName}</span></p>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/packages">
-              <Button variant="outline" className="border-primary/20 hover:bg-primary/10 hover:text-primary">
+              <Button variant="outline" className="border-primary/20 hover:bg-primary/10 hover:text-primary" data-testid="button-new-investment">
                 <PackagePlus className="w-4 h-4 mr-2" />
                 {t.dashboard.newInvestment}
               </Button>
             </Link>
             <Link href="/calculator">
-              <Button variant="secondary" className="bg-secondary hover:bg-secondary/80">
+              <Button variant="secondary" className="bg-secondary hover:bg-secondary/80" data-testid="button-yield-calculator">
                 <Calculator className="w-4 h-4 mr-2" />
                 {t.dashboard.yieldCalculator}
               </Button>
@@ -121,11 +128,11 @@ export default function Dashboard() {
                   <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                     <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
                     <Tooltip
                       contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "8px" }}
                       itemStyle={{ color: "hsl(var(--primary))" }}
-                      formatter={(value: number) => [`$${value}`, "Value"]}
+                      formatter={(value: number) => [`$${value.toLocaleString()}`, "Portfolio Value"]}
                     />
                     <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={3}
                       dot={{ r: 4, fill: "hsl(var(--primary))", strokeWidth: 0 }}
@@ -142,24 +149,39 @@ export default function Dashboard() {
               <CardTitle className="text-lg">{t.dashboard.recentLedger}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                {transactions.map((tx) => (
-                  <div key={tx.id} className="flex items-center justify-between border-b border-border/40 pb-4 last:border-0 last:pb-0">
-                    <div>
-                      <p className="font-medium text-sm">{tx.type}</p>
-                      <p className="text-xs text-muted-foreground font-mono mt-0.5">{tx.id} • {tx.date}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className={`font-mono text-sm font-medium ${tx.amount.startsWith("+") ? "text-emerald-500" : "text-foreground"}`}>
-                        {tx.amount}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{tx.status}</p>
-                    </div>
-                  </div>
-                ))}
+              <div className="space-y-4">
+                <AnimatePresence initial={false}>
+                  {visibleTransactions.map((tx) => (
+                    <motion.div
+                      key={tx.id}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex items-center justify-between border-b border-border/40 pb-4 last:border-0 last:pb-0"
+                    >
+                      <div>
+                        <p className="font-medium text-sm">{tx.type}</p>
+                        <p className="text-xs text-muted-foreground font-mono mt-0.5">{tx.id} · {tx.date}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className={`font-mono text-sm font-medium ${tx.amount.startsWith("+") ? "text-emerald-500" : "text-foreground"}`}>
+                          {tx.amount}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{tx.status}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
-              <Button variant="ghost" className="w-full mt-6 text-sm text-primary hover:text-primary/80">
-                {t.dashboard.viewLedger} <ArrowUpRight className="ml-1 h-3 w-3" />
+              <Button
+                variant="ghost"
+                className="w-full mt-5 text-sm text-primary hover:text-primary/80 hover:bg-primary/5"
+                onClick={() => setShowAllTx((v) => !v)}
+                data-testid="button-view-ledger"
+              >
+                {showAllTx ? "Show Less" : t.dashboard.viewLedger}
+                <ChevronDown className={`ml-1 h-3 w-3 transition-transform ${showAllTx ? "rotate-180" : ""}`} />
               </Button>
             </CardContent>
           </Card>

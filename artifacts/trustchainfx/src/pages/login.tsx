@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, consumeLoginRedirect } from "@/hooks/use-auth";
 import { useLanguage } from "@/hooks/use-language";
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
@@ -15,13 +15,16 @@ export default function Login() {
   const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && password) {
-      login(email);
-      setLocation("/dashboard");
-    }
+    setError("");
+    if (!email || !password) { setError("Please fill in all fields."); return; }
+    if (password.length < 3) { setError("Invalid credentials."); return; }
+    login(email);
+    const redirect = consumeLoginRedirect();
+    setLocation(redirect);
   };
 
   return (
@@ -45,7 +48,7 @@ export default function Login() {
             <h2 className="text-2xl font-bold text-center mb-2 tracking-tight">{t.login.title}</h2>
             <p className="text-muted-foreground text-center mb-8 text-sm font-mono">{t.login.subtitle}</p>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-xs uppercase tracking-widest text-muted-foreground">
                   {t.login.emailLabel}
@@ -69,6 +72,12 @@ export default function Login() {
                   data-testid="input-password" required
                 />
               </div>
+
+              {error && (
+                <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
+                  {error}
+                </div>
+              )}
 
               <Button
                 type="submit"

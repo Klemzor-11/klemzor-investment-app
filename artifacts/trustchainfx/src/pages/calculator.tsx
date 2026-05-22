@@ -9,6 +9,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Calculator as CalcIcon } from "lucide-react";
 import { motion } from "framer-motion";
 
+// Fixed English keys for recharts dataKey — translated labels are display-only
+const KEY_PRINCIPAL = "Principal";
+const KEY_PROFIT = "Profit";
+
 export default function Calculator() {
   const { t } = useLanguage();
   const [amount, setAmount] = useState<number>(1000);
@@ -18,17 +22,23 @@ export default function Calculator() {
   const stats = useMemo(() => {
     const profit = amount * (roi / 100) * months;
     const total = amount + profit;
-    const data = [];
-    for (let i = 1; i <= months; i++) {
-      const monthProfit = amount * (roi / 100);
-      data.push({
-        month: `${t.calculator.month} ${i}`,
-        [t.calculator.principal]: amount,
-        [t.calculator.profit]: Math.round(monthProfit * i),
-      });
-    }
+    const data = Array.from({ length: months }, (_, i) => ({
+      month: `${t.calculator.month} ${i + 1}`,
+      [KEY_PRINCIPAL]: amount,
+      [KEY_PROFIT]: Math.round(amount * (roi / 100) * (i + 1)),
+    }));
     return { profit, total, data };
-  }, [amount, roi, months, t]);
+  }, [amount, roi, months, t.calculator.month]);
+
+  const handleAmountChange = (val: string) => {
+    const n = parseFloat(val);
+    if (!isNaN(n) && n >= 0) setAmount(Math.min(n, 50000));
+  };
+
+  const handleRoiChange = (val: string) => {
+    const n = parseFloat(val);
+    if (!isNaN(n) && n >= 0) setRoi(Math.min(n, 50));
+  };
 
   return (
     <Layout>
@@ -61,9 +71,9 @@ export default function Calculator() {
                     <span className="font-mono text-sm text-primary">${amount.toLocaleString()}</span>
                   </div>
                   <Input
-                    type="number"
+                    type="number" min={50} max={50000}
                     value={amount || ""}
-                    onChange={(e) => setAmount(Number(e.target.value))}
+                    onChange={(e) => handleAmountChange(e.target.value)}
                     className="font-mono"
                     data-testid="input-amount"
                   />
@@ -76,13 +86,13 @@ export default function Calculator() {
                     <span className="font-mono text-sm text-primary">{roi}%</span>
                   </div>
                   <Input
-                    type="number"
+                    type="number" min={1} max={50}
                     value={roi || ""}
-                    onChange={(e) => setRoi(Number(e.target.value))}
+                    onChange={(e) => handleRoiChange(e.target.value)}
                     className="font-mono"
                     data-testid="input-roi"
                   />
-                  <Slider value={[roi]} min={1} max={50} step={1} onValueChange={(v) => setRoi(v[0])} className="mt-2" />
+                  <Slider value={[roi]} min={1} max={50} step={0.5} onValueChange={(v) => setRoi(v[0])} className="mt-2" />
                 </div>
 
                 <div className="space-y-4">
@@ -109,6 +119,12 @@ export default function Calculator() {
                     ${stats.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
+                <div className="mt-4 pt-4 border-t border-border/50">
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>ROI over {months} months</span>
+                    <span className="text-emerald-500 font-medium">+{((stats.profit / amount) * 100).toFixed(1)}%</span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </motion.div>
@@ -129,15 +145,18 @@ export default function Calculator() {
                     <BarChart data={stats.data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                       <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
                       <Tooltip
-                        cursor={{ fill: "hsl(var(--muted)/0.5)" }}
+                        cursor={{ fill: "hsl(var(--muted)/0.3)" }}
                         contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "8px" }}
-                        formatter={(value: number) => [`$${value}`, ""]}
+                        formatter={(value: number, name: string) => [`$${value.toLocaleString()}`, name === KEY_PRINCIPAL ? t.calculator.principal : t.calculator.profit]}
                       />
-                      <Legend wrapperStyle={{ paddingTop: "20px" }} />
-                      <Bar dataKey={t.calculator.principal} stackId="a" fill="hsl(var(--secondary))" radius={[0, 0, 4, 4]} />
-                      <Bar dataKey={t.calculator.profit} stackId="a" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      <Legend
+                        wrapperStyle={{ paddingTop: "20px" }}
+                        formatter={(value) => value === KEY_PRINCIPAL ? t.calculator.principal : t.calculator.profit}
+                      />
+                      <Bar dataKey={KEY_PRINCIPAL} stackId="a" fill="hsl(var(--secondary))" radius={[0, 0, 4, 4]} />
+                      <Bar dataKey={KEY_PROFIT} stackId="a" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
